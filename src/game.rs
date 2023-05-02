@@ -1,45 +1,54 @@
-#[derive(Debug)]
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
 pub struct Player {
     name: String,
     cookie: String
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct PlayerIdx(usize);
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Game {
     players: Vec<Player>,
     board: Board,
     state: GameState
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum GameState {
     WaitingForPlayers,
     Playing(PlayingState),
     Finished(FinishedState)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
+pub enum Action {
+    Start,
+    AddPlayer(String, String),
+    PlayTurn
+}
+
+#[derive(Debug, Serialize)]
 pub struct PlayingState {
     next_turn: PlayerIdx,
     die_order: Vec<PlayerIdx>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct FinishedState {
     die_order: Vec<PlayerIdx>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Board {
     height: i32,
     width: i32,
     board: Vec<Vec<BoardCell>>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Clone)]
 pub struct BoardCell {
     uncovered: bool,
     ship_nodes: Vec<PlayerIdx>
