@@ -1,57 +1,57 @@
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Player {
     name: String,
-    cookie: String
+    cookie: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct PlayerIdx(usize);
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Game {
     players: Vec<Player>,
     board: Board,
-    state: GameState
+    state: GameState,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub enum GameState {
     WaitingForPlayers,
     Playing(PlayingState),
-    Finished(FinishedState)
+    Finished(FinishedState),
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub enum Action {
     Start,
     AddPlayer(String, String),
-    PlayTurn
+    PlayTurn,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct PlayingState {
     next_turn: PlayerIdx,
-    die_order: Vec<PlayerIdx>
+    die_order: Vec<PlayerIdx>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct FinishedState {
-    die_order: Vec<PlayerIdx>
+    die_order: Vec<PlayerIdx>,
 }
 
 #[derive(Debug, Serialize, Clone)]
 pub struct Board {
     height: i32,
     width: i32,
-    board: Vec<Vec<BoardCell>>
+    board: Vec<Vec<BoardCell>>,
 }
 
 #[derive(Debug, Serialize, Clone)]
 pub struct BoardCell {
     uncovered: bool,
-    ship_nodes: Vec<PlayerIdx>
+    ship_nodes: Vec<PlayerIdx>,
 }
 
 impl Game {
@@ -73,7 +73,7 @@ impl Game {
             println!("Tried to add new player while not in the waiting for players state");
         }
     }
-    
+
     pub fn start_game(&mut self) {
         if let GameState::WaitingForPlayers = &self.state {
             if self.players.len() >= 2 {
@@ -90,9 +90,10 @@ impl Game {
 
 impl Board {
     fn new(height: i32, width: i32) -> Self {
-        let board = (0..width).into_iter().map(|_| {
-            (0..height).into_iter().map(|_| BoardCell::new()).collect()
-        }).collect();
+        let board = (0..width)
+            .into_iter()
+            .map(|_| (0..height).into_iter().map(|_| BoardCell::new()).collect())
+            .collect();
 
         Board {
             height,

@@ -1,9 +1,61 @@
+use std::collections::HashMap;
+use std::hash::Hash;
+use std::sync::{Arc, Mutex};
 use crate::game::Game;
+
+use axum::{routing::get, routing::post, Router, Json};
+use axum::extract::{Path, State};
+use axum::extract::ws::close_code::STATUS;
+use axum::handler::Handler;
+use axum::http::StatusCode;
+use axum::response::IntoResponse;
+use serde_json::json;
+use uuid::Uuid;
 
 mod game;
 
-fn main() {
-    let mut game = Game::new(10, 10);
-    game.add_player("Tim", "123");
-    println!("{}", serde_json::to_string(&game).unwrap());
+#[tokio::main]
+async fn main() {
+    let games = Arc::new(Mutex::new(HashMap::<String, Game>::new()));
+    // build our application with a single route
+    let app = Router::new().route("/", get(hello_world)).with_state(games.clone()).
+        route("/game", post(new_game)).with_state(games.clone()).
+        route("/game", get(list_games)).with_state(games.clone()).
+        route("/game/:id", get(get_game)).with_state(games.clone());
+
+    // run it with hyper on localhost:3000
+    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
+}
+
+async fn hello_world(State(state): State<Arc<Mutex<HashMap<String,Game>>>>) -> impl IntoResponse {
+    let mut games = state.lock().unwrap();
+    let id = Uuid::new_v4().to_string();
+    games.insert(id, Game::new(10,10));
+    Json(games.clone())
+}
+
+async fn new_game(State(state): State<Arc<Mutex<HashMap<String,Game>>>>) -> impl IntoResponse {
+    let mut games = state.lock().unwrap();
+    let id = Uuid::new_v4().to_string();
+    games.insert(id.clone(), Game::new(10,10));
+    Json(json!({"id": id}))
+}
+
+async fn list_games(State(state): State<Arc<Mutex<HashMap<String,Game>>>>) -> impl IntoResponse {
+    let mut games = state.lock().unwrap();
+    // games.iter().map(|(id, _)| id).collect();
+    Json(games.iter().map(|(id, _)| id.clone()).collect::<Vec<_>>())
+}
+
+async fn get_game(Path(id): Path<String>, State(state): State<Arc<Mutex<HashMap<String,Game>>>>) -> impl IntoResponse {
+    let mut games = state.lock().unwrap();
+    let game = games.get(&id);
+    if let Some(game) = games.get(&id) {
+        Ok(Json(game.clone()))
+    }else {
+        Err((StatusCode::NOT_FOUND, Json("not found")))
+    }
 }
