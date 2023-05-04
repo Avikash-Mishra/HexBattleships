@@ -69,8 +69,12 @@ impl Game {
                 name: name.to_string(),
                 cookie: cookie.to_string(),
             });
-            self.board.data[1][1].hits.push(PlayerIdx(self.players.len()-1));
-            self.board.data[2][self.players.len()].hits.push(PlayerIdx(self.players.len()-1))
+            self.board.data[1][1]
+                .hits
+                .push(PlayerIdx(self.players.len() - 1));
+            self.board.data[2][self.players.len()]
+                .hits
+                .push(PlayerIdx(self.players.len() - 1))
         } else {
             println!("Tried to add new player while not in the waiting for players state");
         }
@@ -87,6 +91,10 @@ impl Game {
         } else {
             println!("Tried to start the game when its already been started");
         }
+    }
+
+    pub fn bomb(&mut self, x: usize, y: usize) {
+        self.board.data[x][y].uncovered = true;
     }
 }
 
