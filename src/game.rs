@@ -45,13 +45,13 @@ pub struct FinishedState {
 pub struct Board {
     height: i32,
     width: i32,
-    board: Vec<Vec<BoardCell>>,
+    data: Vec<Vec<BoardCell>>,
 }
 
 #[derive(Debug, Serialize, Clone)]
 pub struct BoardCell {
     uncovered: bool,
-    ship_nodes: Vec<PlayerIdx>,
+    hits: Vec<PlayerIdx>,
 }
 
 impl Game {
@@ -68,7 +68,9 @@ impl Game {
             self.players.push(Player {
                 name: name.to_string(),
                 cookie: cookie.to_string(),
-            })
+            });
+            self.board.data[1][1].hits.push(PlayerIdx(self.players.len()-1));
+            self.board.data[2][self.players.len()].hits.push(PlayerIdx(self.players.len()-1))
         } else {
             println!("Tried to add new player while not in the waiting for players state");
         }
@@ -90,15 +92,15 @@ impl Game {
 
 impl Board {
     fn new(height: i32, width: i32) -> Self {
-        let board = (0..width)
+        let board = (0..height)
             .into_iter()
-            .map(|_| (0..height).into_iter().map(|_| BoardCell::new()).collect())
+            .map(|_| (0..width).into_iter().map(|_| BoardCell::new()).collect())
             .collect();
 
         Board {
             height,
             width,
-            board,
+            data: board,
         }
     }
 }
@@ -107,7 +109,7 @@ impl BoardCell {
     fn new() -> Self {
         BoardCell {
             uncovered: false,
-            ship_nodes: vec![],
+            hits: vec![],
         }
     }
 }
